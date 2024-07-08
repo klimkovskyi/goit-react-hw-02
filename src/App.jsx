@@ -1,24 +1,64 @@
-import userData from "./userData.json";
-import friends from "./friends.json";
-import transactions from "./transactions.json";
-import Profile from "./components/Profile/Profile";
-import FriendList from "./components/FriendList/FriendList";
-import TransactionHistory from "./components/TransactionHistory/TransactionHistory";
+import { useEffect, useState } from "react";
+import Description from "./components/Description/Description";
+import Options from "./components/Options/Options";
+import Feedback from "./components/Feedback/Feedback";
+import Notification from "./components/Notification/Notification";
 
 function App() {
-  const { username, tag, location, avatar, stats } = userData;
+  const initialFeedback = () => {
+    const savedFeedback = window.localStorage.getItem("savedFeedback");
+
+    if (savedFeedback?.length) {
+      return JSON.parse(savedFeedback);
+    }
+    return {
+      good: 0,
+      neutral: 0,
+      bad: 0,
+    };
+  };
+
+  const [FeedbackType, setFeedbackType] = useState(initialFeedback);
+
+  useEffect(() => {
+    window.localStorage.setItem("savedFeedback", JSON.stringify(FeedbackType));
+  }, [FeedbackType]);
+
+  const updateFeedback = FeedbackType => {
+    setFeedbackType(prevFeedback => ({
+      ...prevFeedback,
+      [FeedbackType]: prevFeedback[FeedbackType] + 1,
+    }));
+  };
+
+  const totalFeedback =
+    FeedbackType.good + FeedbackType.neutral + FeedbackType.bad;
+
+  const positiveFeedback = Math.round(
+    (FeedbackType.good / totalFeedback) * 100
+  );
+
+  const resetFeedback = () => {
+    setFeedbackType({ good: 0, bad: 0, neutral: 0 });
+  };
 
   return (
     <>
-      <Profile
-        name={username}
-        tag={tag}
-        location={location}
-        image={avatar}
-        stats={stats}
+      <Description />
+      <Options
+        updateFeedback={updateFeedback}
+        totalFeedback={totalFeedback}
+        resetFeedback={resetFeedback}
       />
-      <FriendList friends={friends} />
-      <TransactionHistory items={transactions} />
+      {totalFeedback > 0 ? (
+        <Feedback
+          FeedbackType={FeedbackType}
+          positiveFeedback={positiveFeedback}
+          totalFeedback={totalFeedback}
+        />
+      ) : (
+        <Notification />
+      )}
     </>
   );
 }
