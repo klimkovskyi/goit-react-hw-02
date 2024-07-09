@@ -34,9 +34,10 @@ function App() {
   const totalFeedback =
     FeedbackType.good + FeedbackType.neutral + FeedbackType.bad;
 
-  const positiveFeedback = Math.round(
-    (FeedbackType.good / totalFeedback) * 100
-  );
+  const positiveFeedback =
+    totalFeedback > 0
+      ? Math.round((FeedbackType.good / totalFeedback) * 100)
+      : 0;
 
   const resetFeedback = () => {
     setFeedbackType({ good: 0, bad: 0, neutral: 0 });
